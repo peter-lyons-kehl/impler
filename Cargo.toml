@@ -1,0 +1,27 @@
+[package]
+name = "impler"
+version = "0.0.1"
+
+edition = "2015"
+# rust-version = "1.88.0"
+
+license = "BSD-2-Clause OR Apache-2.0 OR MIT"
+
+authors = ["Peter Lyons Kehl<peter.kehl@gmail.com>"]
+description = "Macros to generate a type that implements a user-specified trait and wraps values of other types that implement the same trait (whether specified or implied)"
+
+categories = ["rust-patterns", "no-std", "no-std::no-alloc"]
+
+keywords = ["trait", "macro", "macros", "impl"]
+
+repository = "https://github.com/prudent-rs/impler"
+homepage = "https://github.com/prudent-rs/impler"
+
+[lints.rust]
+unexpected_cfgs = { level = "forbid"}
+unknown_lints = { level = "forbid"}
+
+[dependencies]
+
+[package.metadata.docs.rs]
+default-target = "x86_64-unknown-linux-gnu"
