@@ -18,10 +18,10 @@ impl Display for Never {
     }
 }
 
-pub trait Displays02Trait: Display {
+/*trait Displays02Trait: Display {
     type T01: Display;
     type T02: Display;
-}
+}*/
 
 pub enum Displays02Plus<T01: Display = Never, T02: Display = Never, OTHER: Display = Never> {
     //@TODO separate enum, and wrap transparent
@@ -66,12 +66,12 @@ impl<T01: Display, T02: Display, OTHER: Display> Display for Displays02Plus<T01,
         Self::by_ref(&self, |s| s.fmt(f))
     }
 }
-impl<T01: Display, T02: Display, OTHER: Display> Displays02Trait
+/*impl<T01: Display, T02: Display, OTHER: Display> Displays02Trait
     for Displays02Plus<T01, T02, OTHER>
 {
     type T01 = T01;
     type T02 = T02;
-}
+}*/
 
 /// Without traits like [Displays02PlusTrait], having generic param `OTHER` (rather than using its
 /// default) in `impl` of [Display] for [Displays02Plus] makes calls like
