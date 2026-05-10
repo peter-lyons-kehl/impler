@@ -13,7 +13,7 @@ const _: () = {
 };
 
 impl Display for Never {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, _: &mut Formatter<'_>) -> fmt::Result {
         Ok(())
     }
 }
@@ -30,7 +30,8 @@ pub enum Displays02Plus<T01: Display = Never, T02: Display = Never, OTHER: Displ
     Other(OTHER),
 }
 
-pub type Displays02<T01, T02> = Displays02Plus<T01, T02, Never>;
+//type Displays01<T, OTHER = Never> = Displays02Plus<T, OTHER>;
+type Displays02<T01, T02> = Displays02Plus<T01, T02, Never>;
 
 impl<T01: Display, T02: Display, OTHER: Display> Displays02Plus<T01, T02, OTHER> {
     pub fn new_01(v: T01) -> Self {
@@ -76,39 +77,12 @@ impl<T01: Display, T02: Display, OTHER: Display> Displays02Trait
 /// default) in `impl` of [Display] for [Displays02Plus] makes calls like
 /// `Displays02Plus::new_01(true)` ambiguous if that function's return type is just `impl
 /// Displays02Trait` (or `impl Display`).
-pub trait Displays02PlusTrait<OTHER: Display = Never>: Displays02Trait {}
+/*trait Displays02PlusTrait<OTHER: Display = Never>: Displays02Trait {}
 impl<T01: Display, T02: Display, OTHER: Display> Displays02PlusTrait<OTHER>
     for Displays02Plus<T01, T02, OTHER>
 {
-}
-
-/*impl<T01: Display, T02: Display> From<T01> for Displays02<T01, T02> {
-    fn from(value: T01) -> Self {
-        Self::new_01(value)
-    }
-}*/
-// CONFLICTING:
-/*impl<T01: Display, T02: Display> From<T02> for Displays02<T01, T02> {
-    fn from(value: T02) -> Self {
-        Self::new_02(value)
-    }
-}
-// foreign trait:
-impl<T01: Display, T02: Display> Into<Displays02<T01, T02>> for T01 {
-    fn into(self) -> Displays02<T01, T02> {
-        Displays02::new_01(self)
-    }
-}*/
-/*pub trait MoveIntoDisplays02 {
-    fn move_into<T01: Display, T02: Display>(self) -> Displays02<T01, T02>;
-}
-impl<T01: Display> MoveIntoDisplays02 for T01 {
-    fn move_into<T02: Display>(self) -> Displays02<T01, T02> {
-        todo!()
-    }
 }*/
 
-type Displays01<T, OTHER = Never> = Displays02Plus<T, OTHER>;
 pub trait Displays01PlusExt01<T01: Display> {
     //@TODO seal
     fn into_01(self) -> Displays02Plus<T01>;
@@ -164,4 +138,106 @@ impl<T01: Display, T02: Display, T03: Display> Displays03PlusExt03<T01, T02, T03
     fn into_03(self) -> Displays02Plus<T01, T02> {
         todo!() //Displays03Plus::new_03(self)
     }
+}
+
+pub fn ret_disp() -> impl Display {
+    let _ = if true {
+        Displays02::new_01(true) //@TODO:
+                                 // -extension method for T01, T02... - blanket for all Sized
+                                 // -extension method for Result<..., ...> success
+                                 // -extension method for Result<..., ...> error
+    } else {
+        Displays02::new_02("hi")
+    };
+    if true {
+        Displays02::new_01(1.2)
+    } else {
+        let value = 1;
+        Displays02::new_02(DisplayFromFn::new(move |f| write!(f, "hi {value}")))
+    }
+}
+
+pub mod import_selected_ext {
+    use crate::Displays01PlusExt01;
+    use core::fmt::Display;
+
+    pub fn ret_result_displ() -> Result<(), impl Display> {
+        ret_result_displ2trait()
+    }
+    pub fn ret_result_displ2trait() -> Result<(), impl Display> {
+        //pub fn ret_result_displ2trait() -> Result<(), impl Displays02PlusTrait> {
+        let result_1 = Err(if true {
+            // @TODO Displays02: take a generic param like Display8, Display16, Display32...
+            // - all implement a tiny trait DisplayFixed
+            //
+            // then have blanket:
+            //
+            // impl<F, DF: DisplayFixed + From<F>> From<F> for Displays02<DF> { forward-here }
+
+            //Displays01::new_01("oh")
+            "oh".into_01()
+
+            // problem:
+            //
+            //Displays02Plus::new_01("oh")
+
+            //Displays02Plus::<_, bool>::new_01("oh")
+
+            // @TODO:
+            // - extension method for T01, T02... - blanket for all Sized
+            // - extension method for Result<..., ...> success
+            // - extension method for Result<..., ...> error
+        } else {
+            //Displays02Plus::new_02(true)
+
+            //Displays01::new_01("hi")
+            "hi".into_01()
+
+            // problem:
+            //
+            //Displays02Plus::new_01("hi")
+        });
+        let _ = result_1?;
+
+        let result_2 = Err(if true {
+            //Displays01::new_01("hu")
+            "hu".into_01()
+            //Displays02Plus::new_01("hu")
+        } else {
+            //Displays02Plus::new_02(false)
+            if false {
+                //Displays01::new_01("bye")
+                "bye".into_01()
+                //Displays02Plus::new_01("bye")
+            } else {
+                "bye".into_01()
+            }
+
+            //let value = 1;
+            //
+            // DisplayFromFn::new(move |f| write!(f, "hi {value}"))
+        });
+        //let _ = result_2?;
+        //
+        //Ok(())
+        result_2
+    }
+}
+
+#[repr(transparent)]
+pub struct DisplayFromFn<F: Fn(&mut Formatter<'_>) -> Result<(), core::fmt::Error>>(F);
+impl<F: Fn(&mut Formatter<'_>) -> Result<(), core::fmt::Error>> DisplayFromFn<F> {
+    pub fn new(f: F) -> Self {
+        Self(f)
+    }
+}
+impl<F: Fn(&mut Formatter<'_>) -> Result<(), core::fmt::Error>> Display for DisplayFromFn<F> {
+    fn fmt(&self, fm: &mut Formatter<'_>) -> fmt::Result {
+        self.0(fm)
+    }
+}
+pub fn display_from_fn(
+    f: impl Fn(&mut Formatter<'_>) -> Result<(), core::fmt::Error>,
+) -> impl Display {
+    DisplayFromFn::new(f)
 }
