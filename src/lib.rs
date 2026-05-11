@@ -84,16 +84,6 @@ impl<T01: Trait, T02: Trait, T03: Trait, PLUS: Trait> Trait for Type<T01, T02, T
     }
 }
 
-trait Displays01PlusExt01<T01: Trait> {
-    //@TODO seal
-    fn into_01(self) -> Type<T01>;
-}
-impl<T01: Trait> Displays01PlusExt01<T01> for T01 {
-    fn into_01(self) -> Type<T01> {
-        Type::new_01(self)
-    }
-}
-
 pub mod ext_01 {
     use super::{Trait, Type, Type01};
     pub trait _01<T01: Trait> {
@@ -142,54 +132,7 @@ pub mod ext_02 {
     }
 }
 
-trait Displays02PlusExt01<T01: Trait, T02: Trait> {
-    //@TODO seal
-    fn into_01(self) -> Type<T01, T02>;
-}
-trait Displays02PlusExt02<T01: Trait, T02: Trait> {
-    fn into_02(self) -> Type<T01, T02>;
-}
-impl<T01: Trait, T02: Trait> Displays02PlusExt01<T01, T02> for T01 {
-    fn into_01(self) -> Type<T01, T02> {
-        Type::new_01(self)
-    }
-}
-impl<T01: Trait, T02: Trait> Displays02PlusExt02<T01, T02> for T02 {
-    fn into_02(self) -> Type<T01, T02> {
-        Type::new_02(self)
-    }
-}
-
-/// @TODO finish
-trait Displays03PlusExt01<T01: Trait, T02: Trait, T03: Trait> {
-    //@TODO seal
-    fn into_01(self) -> Type<T01, T02>; //@TODO Displays03Plus
-}
-
-trait Displays03PlusExt02<T01: Trait, T02: Trait, T03: Trait> {
-    fn into_02(self) -> Type<T01, T02>;
-}
-trait Displays03PlusExt03<T01: Trait, T02: Trait, T03: Trait> {
-    fn into_03(self) -> Type<T01, T02>;
-}
-
-impl<T01: Trait, T02: Trait, T03: Trait> Displays03PlusExt01<T01, T02, T03> for T01 {
-    fn into_01(self) -> Type<T01, T02> {
-        Type::new_01(self)
-    }
-}
-impl<T01: Trait, T02: Trait, T03: Trait> Displays03PlusExt02<T01, T02, T03> for T02 {
-    fn into_02(self) -> Type<T01, T02> {
-        Type::new_02(self)
-    }
-}
-impl<T01: Trait, T02: Trait, T03: Trait> Displays03PlusExt03<T01, T02, T03> for T03 {
-    fn into_03(self) -> Type<T01, T02> {
-        todo!() //Displays03Plus::new_03(self)
-    }
-}
-
-/// Like [core::convert::From], but NOT reflective, so that we don't get conflicts concerning
+// Like [core::convert::From], but NOT reflective, so that we don't get conflicts concerning
 /// [Type] and friends.
 ///
 /// Just like with [core::convert::From], prefer to implement [ImplFrom] over [IntoImpl], as there
@@ -303,8 +246,9 @@ pub mod import_ext_01plus {
             "hu".into_01()
         } else {
             if false {
+                // can NOT return/evaluate to just `true` - because we don't apply the question mark
+                // operator
                 true.into_impl()
-                // can NOT return just: true
             } else {
                 "bye".into_01()
             }
