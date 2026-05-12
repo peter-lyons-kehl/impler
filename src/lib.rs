@@ -17,7 +17,7 @@ fn any<T>() -> T {
     #[cfg(feature = "no-panic")]
     let _ = loop {};
     #[cfg(not(feature = "no-panic"))]
-    let __ = unreachable!();
+    let _ = unreachable!();
 }
 
 impl Trait for Never {
@@ -84,9 +84,12 @@ impl<T01: Trait, T02: Trait, T03: Trait, PLUS: Trait> Trait for Type<T01, T02, T
     }
 }
 
+pub(crate) trait SealedTrait {}
+
 pub mod ext_01 {
     use super::{Trait, Type, Type01};
-    pub trait _01<T01: Trait> {
+    #[allow(private_bounds)]
+    pub trait _01<T01: Trait>: super::SealedTrait {
         //@TODO seal
         fn into_01(self) -> Type01<T01>;
     }
@@ -95,6 +98,7 @@ pub mod ext_01 {
             Type::new_01(self)
         }
     }
+    impl<T01: Trait> super::SealedTrait for T01 {}
 }
 pub mod ext_01plus {
     use super::{Trait, Type, Type01Plus};
@@ -107,6 +111,9 @@ pub mod ext_01plus {
             Type::new_01(self)
         }
     }
+    /// Use this for a return type (with `impl`, like `impl Plus<bool>`)
+    /// - to indicate `PLUS` type, and
+    /// - without a need to indicate `T01` (since that can be inferred from [_01::into_01]).
     pub trait Plus<PLUS: Trait>: Trait {}
     impl<T01: Trait, PLUS: Trait> Plus<PLUS> for Type01Plus<T01, PLUS> {}
 }
@@ -246,11 +253,11 @@ pub mod import_ext_01plus {
             "hu".into_01()
         } else {
             if false {
-                // can NOT return/evaluate to just `true` - because we don't apply the question mark
+                // can NOT yield/evaluate to just `true` - because we don't apply the question mark
                 // operator
                 true.into_impl()
             } else {
-                "bye".into_01()
+                "bye".into_01() // PLUS
             }
         });
         //let _ = result_2?;
