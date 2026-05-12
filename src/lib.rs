@@ -84,57 +84,75 @@ impl<T01: Trait, T02: Trait, T03: Trait, PLUS: Trait> Trait for Type<T01, T02, T
     }
 }
 
-pub(crate) trait SealedTrait {}
+/// Intentionally not public - used to indicate a sealed trait.
+struct SealedTraitFunParam;
 
-pub mod ext_01 {
-    use super::{Trait, Type, Type01};
-    #[allow(private_bounds)]
-    pub trait _01<T01: Trait>: super::SealedTrait {
-        //@TODO seal
-        fn into_01(self) -> Type01<T01>;
-    }
-    impl<T01: Trait> _01<T01> for T01 {
-        fn into_01(self) -> Type01<T01> {
-            Type::new_01(self)
+pub mod ext {
+    pub mod _01 {
+        use super::super::{SealedTraitFunParam, Trait, Type, Type01};
+        #[allow(private_bounds)]
+        pub trait _01<T01: Trait> {
+            fn into_01(self) -> Type01<T01>;
+            #[allow(private_interfaces)]
+            fn sealed(_: SealedTraitFunParam);
+        }
+        impl<T01: Trait> _01<T01> for T01 {
+            fn into_01(self) -> Type01<T01> {
+                Type::new_01(self)
+            }
+            #[allow(private_interfaces)]
+            fn sealed(_: SealedTraitFunParam) {}
         }
     }
-    impl<T01: Trait> super::SealedTrait for T01 {}
-}
-pub mod ext_01plus {
-    use super::{Trait, Type, Type01Plus};
-    pub trait _01<T01: Trait, PLUS: Trait> {
-        //@TODO seal
-        fn into_01(self) -> Type01Plus<T01, PLUS>;
-    }
-    impl<T01: Trait, PLUS: Trait> _01<T01, PLUS> for T01 {
-        fn into_01(self) -> Type01Plus<T01, PLUS> {
-            Type::new_01(self)
+    pub mod _01p {
+        use super::super::{SealedTraitFunParam, Trait, Type, Type01Plus};
+        #[allow(private_bounds)]
+        pub trait _01<T01: Trait, PLUS: Trait> {
+            fn into_01(self) -> Type01Plus<T01, PLUS>;
+            #[allow(private_interfaces)]
+            fn sealed(_: SealedTraitFunParam);
         }
-    }
-    /// Use this for a return type (with `impl`, like `impl Plus<bool>`)
-    /// - to indicate `PLUS` type, and
-    /// - without a need to indicate `T01` (since that can be inferred from [_01::into_01]).
-    pub trait Plus<PLUS: Trait>: Trait {}
-    impl<T01: Trait, PLUS: Trait> Plus<PLUS> for Type01Plus<T01, PLUS> {}
-}
-pub mod ext_02 {
-    use super::{Trait, Type};
-    pub trait _01<T01: Trait, T02: Trait> {
-        //@TODO seal
-        fn into_01(self) -> Type<T01, T02>;
-    }
-    pub trait _02<T01: Trait, T02: Trait> {
-        //@TODO seal
-        fn into_02(self) -> Type<T01, T02>;
-    }
-    impl<T01: Trait, T02: Trait> _01<T01, T02> for T01 {
-        fn into_01(self) -> Type<T01, T02> {
-            Type::new_01(self)
+        impl<T01: Trait, PLUS: Trait> _01<T01, PLUS> for T01 {
+            fn into_01(self) -> Type01Plus<T01, PLUS> {
+                Type::new_01(self)
+            }
+            #[allow(private_interfaces)]
+            fn sealed(_: SealedTraitFunParam) {}
         }
+        /// Use this for a return type (with `impl`, like `impl Plus<bool>`)
+        /// - to indicate `PLUS` type, but
+        /// - without a need to indicate `T01` (since that can be inferred from [_01::into_01]).
+        pub trait Plus<PLUS: Trait>: Trait {}
+        impl<T01: Trait, PLUS: Trait> Plus<PLUS> for Type01Plus<T01, PLUS> {}
     }
-    impl<T01: Trait, T02: Trait> _02<T01, T02> for T02 {
-        fn into_02(self) -> Type<T01, T02> {
-            Type::new_02(self)
+    pub mod _02 {
+        use super::super::{SealedTraitFunParam, Trait, Type};
+        #[allow(private_bounds)]
+        pub trait _01<T01: Trait, T02: Trait> {
+            //@TODO seal
+            fn into_01(self) -> Type<T01, T02>;
+            #[allow(private_interfaces)]
+            fn sealed(_: SealedTraitFunParam);
+        }
+        pub trait _02<T01: Trait, T02: Trait> {
+            //@TODO seal
+            fn into_02(self) -> Type<T01, T02>;
+            #[allow(private_interfaces)]
+            fn sealed(_: SealedTraitFunParam);
+        }
+        impl<T01: Trait, T02: Trait> _01<T01, T02> for T01 {
+            fn into_01(self) -> Type<T01, T02> {
+                Type::new_01(self)
+            }
+            #[allow(private_interfaces)]
+            fn sealed(_: SealedTraitFunParam) {}
+        }
+        impl<T01: Trait, T02: Trait> _02<T01, T02> for T02 {
+            fn into_02(self) -> Type<T01, T02> {
+                Type::new_02(self)
+            }
+            #[allow(private_interfaces)]
+            fn sealed(_: SealedTraitFunParam) {}
         }
     }
 }
@@ -199,7 +217,7 @@ pub fn ret_disp() -> impl Trait {
 }
 
 pub mod import_ext_01 {
-    use crate::ext_01::*;
+    use crate::ext::_01::*;
     use core::fmt::Display;
 
     pub fn ret_result_displ() -> Result<(), impl Display> {
@@ -239,7 +257,7 @@ pub mod import_ext_01 {
     }
 }
 pub mod import_ext_01plus {
-    use crate::{ext_01plus::*, IntoImpl};
+    use crate::{ext::_01p::*, IntoImpl};
     use core::fmt::Display;
 
     pub fn ret_result_displ() -> Result<(), impl Display> {
